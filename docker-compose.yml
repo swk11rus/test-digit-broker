@@ -1,0 +1,13 @@
+version: '3.0'
+services:
+  php-fpm:
+    build:
+      context: .docker/php-fpm
+      args:
+        PHP_VERSION: "$PHP_VERSION"
+    env_file: .env
+    container_name: test-digit-broker
+    volumes:
+      - "./:$APP_SOURCE_ROOT"
+    ports:
+      - 8080:80

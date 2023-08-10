@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>test-digit-broker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" ></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <h1>{{ message }}</h1>
+            <div class="dropdown float-end">
+                <div>Выводить по</div>
+                <a class="btn btn-primary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {{ offset }}
+                </a>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                    <a @click="offset=5" class="dropdown-item" href="#">5</a>
+                    <a @click="offset=10" class="dropdown-item" href="#">10</a>
+                </div>
+            </div>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">id</th>
+                    <th scope="col">Наименование</th>
+                    <th scope="col">Цена</th>
+                    <th scope="col">Количество</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="item in items" :key="item.id">
+                    <th scope="row" class="w-auto">{{ item.id }}</th>
+                    <td class="w-50">{{ item.title }}</td>
+                    <td class="w-25">{{ item.price }}</td>
+                    <td class="w-25">{{ item.quantity }}</tdc>
+                </tr>
+                </tbody>
+            </table>
+            <div class="btn-group" role="group" aria-label="Basic example">
+                <button @click="backwardPage" type="button" class="btn btn-primary">Назад</button>
+                <button @click="forwardPage" type="button" class="btn btn-primary">Вперед</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            message: 'Test digit broker',
+            items: [],
+            offset: 5,
+            page: 1,
+        },
+        methods: {
+            async fetchData() {
+                const { data } = await new axios.get(`http://localhost:8080?page=${this.page}&offset=${this.offset}`);
+                return data;
+            },
+            async forwardPage() {
+                this.page++;
+                const items = await this.fetchData();
+
+                if (items.length === 0) {
+                    this.page--;
+                    return;
+                }
+
+                this.items = items;
+            },
+            async backwardPage() {
+                this.page--;
+
+                if (this.page === 0) {
+                    this.page = 1;
+                    return;
+                }
+
+                const items = await this.fetchData();
+
+                if (items.length === 0) {
+                    this.page++;
+                    return;
+                }
+
+                this.items = items;
+            },
+        },
+        watch: {
+          offset: async function (oldVal, newVal) {
+              this.items = await this.fetchData();
+          },
+        },
+        async mounted() {
+          this.items = await this.fetchData();
+        },
+    })
+</script>
